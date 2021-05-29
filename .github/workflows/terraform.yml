@@ -14,25 +14,21 @@
 #       with:
 #         cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
 
-name: 'Terraform'
+name: Run test matrix
 
-on:
-  push:
-    branches:
-    - main
-  pull_request:
+on: [push]
 
 jobs:
-  terraform:
-    name: 'Terraform'
+  build:
     runs-on: ubuntu-latest
-    environment: production
-
-    # Use the Bash shell regardless whether the GitHub Actions runner is ubuntu-latest, macos-latest, or windows-latest
-    defaults:
-      run:
-        shell: bash
-
+    continue-on-error: true
+    strategy:
+      max-parallel: 4
+      matrix:
+        node-version: [8, 10, 12, 13]
+        mongodb-version: [4.0, 4.2]
+        redis-version: [4, 5, 5.0.12, 6, 6.0.12, 6.2, 6.2.1, 6.2.2, 6.0.11, 5.0.11, 6.0.8, 6.0.7, 6.0.6, 6.0.5, 6.0.4]
+    timeout-minutes: 300
     steps:
     # Checkout the repository to the GitHub Actions runner
     - name: Checkout
@@ -40,6 +36,8 @@ jobs:
 
     # Install the latest version of Terraform CLI and configure the Terraform CLI configuration file with a Terraform Cloud user API token
     - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v1
+      withrraform
       uses: hashicorp/setup-terraform@v1
       with:
         cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
@@ -52,6 +50,8 @@ jobs:
     - name: Terraform Format
       run: terraform fmt -check
 
-    # Generates an execution plan for Terraform
+    # Generates an execution plan for Terrafor
+      # On push to main, build or change infrastructure according to Terraform configuration files
+      # Note: It is recommended to set up a required "strict" status check in your repository for "Terraform Cloud". See the documentation on "strict" required status checks for more information: https://help.github.com/en/github/administering-a-repository/types-of-required-status-checks
     - name: Build
       uses: docker/build-push-action@v1
